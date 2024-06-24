@@ -1,16 +1,15 @@
-// src/components/LoginForm.js
+// src/components/SignupForm.js
 import React, { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 
-const LoginForm = () => {
-    const { login , refreshAuth} = useAuth();
+const SignupForm = () => {
+    const { signup } = useAuth();
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        await login(username, password);
-        refreshAuth();
+        await signup(username, password);
     };
 
     return (
@@ -27,9 +26,9 @@ const LoginForm = () => {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
             />
-            <button type="submit">Login</button>
+            <button type="submit">Signup</button>
         </form>
     );
 };
 
-export default LoginForm;
+export default SignupForm;

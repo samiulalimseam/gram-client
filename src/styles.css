@@ -1,0 +1,57 @@
+/* src/styles.css */
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+.App {
+    text-align: center;
+}
+
+.navbar {
+    background-color: #282c34;
+    padding: 1rem;
+    color: white;
+}
+
+.navbar a, .navbar button {
+    color: white;
+    margin: 0 1rem;
+}
+
+.login-page, .signup-page, .profile-page {
+    padding: 2rem;
+}
+
+.chat-page {
+    display: flex;
+}
+
+.contact-list, .chat-box {
+    flex: 1;
+    padding: 1rem;
+}
+
+.contact {
+    cursor: pointer;
+    padding: 0.5rem;
+    border-bottom: 1px solid #ccc;
+}
+
+.contact:hover {
+    background-color: #f1f1f1;
+}
+
+.messages {
+    height: 300px;
+    overflow-y: scroll;
+    border: 1px solid #ccc;
+    padding: 1rem;
+    margin-bottom: 1rem;
+}
+
+.message {
+    padding: 0.5rem 0;
+}

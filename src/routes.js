@@ -1,20 +1,22 @@
-// frontend/src/routes.js
+// src/routes.js
 import React from 'react';
-import { BrowserRouter as Router, Route, Switch } from 'react-router-dom';
+import { Routes, Route } from 'react-router-dom';
+import ChatPage from './pages/ChatPage';
 import LoginPage from './pages/LoginPage';
 import SignupPage from './pages/SignupPage';
-import ChatPage from './pages/ChatPage';
+import ProfilePage from './pages/ProfilePage';
+import ErrorPage from './pages/ErrorPage';
 
-const Routes = () => {
+const RoutesConfig = () => {
     return (
-        <Router>
-            <Switch>
-                <Route exact path="/" component={LoginPage} />
-                <Route path="/signup" component={SignupPage} />
-                <Route path="/chat" component={ChatPage} />
-            </Switch>
-        </Router>
+        <Routes  >
+            <Route  path="/" element={<LoginPage />} />
+            <Route path="/signup" element={<SignupPage />} />
+            <Route path="/chat" element={<ChatPage />} />
+            <Route path="/profile" element={<ProfilePage />} />
+            <Route path="*" element={<ErrorPage />} />
+        </Routes>
     );
 };
 
-export default Routes;
+export default RoutesConfig;
