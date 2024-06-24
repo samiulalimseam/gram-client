@@ -7,8 +7,9 @@ import "./ChatPage.css"; // Import the CSS file for styles
 const ChatPage = () => {
   const { user, loading } = useAuth();
   const [selectedChatId, setSelectedChatId] = useState(null);
+  const [users, setUsers] = useState(null);
   const [isSidebarVisible, setIsSidebarVisible] = useState(false);
-
+  console.log(selectedChatId);
   if (loading) return <div>Loading...</div>;
 
   return (
@@ -27,6 +28,7 @@ const ChatPage = () => {
         className={`sidebar ${isSidebarVisible ? "visible" : "hidden"}`}
       >
         <ContactList
+          setUsers={setUsers}
           userId={user?._id}
           setSelectedFriendId={selectedChatId}
           onSelectChat={(chatId) => {
@@ -39,6 +41,7 @@ const ChatPage = () => {
       {/* Sidebar for larger screens */}
       <div id="full-sidebar" className="sidebar">
         <ContactList
+         setUsers={setUsers}
           userId={user?._id}
           setSelectedFriendId={selectedChatId}
           onSelectChat={setSelectedChatId}
@@ -47,7 +50,7 @@ const ChatPage = () => {
 
       {/* Main chat area */}
       <div className="chat-content">
-        {selectedChatId && <ChatBox chatId={selectedChatId} />}
+        {selectedChatId && <ChatBox users={users} chatId={selectedChatId} />}
       </div>
     </div>
   );

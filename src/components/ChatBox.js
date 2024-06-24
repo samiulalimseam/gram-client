@@ -1,125 +1,67 @@
-import React, { useEffect, useState, useRef, useCallback } from "react";
-import { useAuth } from "../contexts/AuthContext";
-import {
-  createOrGetChat,
-  getMessageContent,
-  sendMessage,
-} from "../services/chatService";
+import React, { useEffect, useState } from 'react';
+import io from 'socket.io-client';
+import { useAuth } from '../contexts/AuthContext';
+import { sendMessage } from '../services/chatService';
 
-const ChatBox = ({ chatId }) => {
+const socket = io('http://localhost:5000', {transports: ['websocket']}); // Replace with your server URL
+
+const ChatBox = ({ chatId, users }) => {
+  console.log("chat at chatbox", chatId);
   const { user } = useAuth();
   const [messages, setMessages] = useState([]);
-  const [messageIds, setMessageIds] = useState([]);
-  const [newMessage, setNewMessage] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
-  const [refreshChat, setRefreshChat] = useState(false);
+  const [newMessage, setNewMessage] = useState('');
 
-  // Reference to the messages container
-  const messagesEndRef = useRef(null);
+  const sender = users.find(usr => usr._id !== user._id);
 
-  // Fetch messages on initial load or when chatId changes
   useEffect(() => {
-    const fetchMessages = async () => {
-      setLoading(true);
-      setError(null);
+    // Join the chat room upon component mount
+    socket.emit('join', chatId);
 
-      try {
-        const data = await createOrGetChat(chatId, [user?._id, chatId]);
-        setMessageIds(data?.messages || []);
-      } catch (error) {
-        setError('Failed to fetch chat.');
-        console.error('Fetch Messages Error:', error.message);
-      } finally {
-        setLoading(false);
-      }
+    // Listen for new messages
+    socket.on('message', (message) => {
+      setMessages(prevMessages => [...prevMessages, message]);
+      sendMessage(chatId, sender?._id, message.content);
+    });
+
+    return () => {
+      socket.off('message');
     };
+  }, [chatId]);
 
-    if (chatId && user?._id) {
-      fetchMessages();
-    }
-  }, [chatId, user?._id, refreshChat]);
-
-  // Fetch message content whenever message IDs change
-  useEffect(() => {
-    const fetchMessageContent = async () => {
-      if (messageIds.length === 0) return;
-
-      setLoading(true);
-      setError(null);
-
-      try {
-        const data = await getMessageContent(messageIds);
-        setMessages(data?.messages || []);
-      } catch (error) {
-        setError('Failed to fetch message content.');
-        console.error('Fetch Message Content Error:', error.message);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchMessageContent();
-  }, [messageIds]);
-
-  // Scroll to the bottom of the messages container
-  useEffect(() => {
-    if (messagesEndRef.current) {
-      messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
-    }
-  }, [messages]);
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setRefreshChat((prev) => !prev);
-    }, 600000);
-
-    return () => clearInterval(interval);
-  },[])
-
-  const handleSendMessage = useCallback(async (e) => {
+  const handleSendMessage = async (e) => {
     e.preventDefault();
+    
+    try {
+      if (newMessage.trim() !== '') {
+        const messageData = {
+          chatId,
+          sender: user?._id, // Replace with your sender ID logic
+          content: newMessage.trim()
+        };
+        // Emit sendMessage event to server
+        socket.emit('sendMessage', messageData);
 
-    if (newMessage.trim()) {
-      setError(null);
-
-      try {
-        const message = await sendMessage(chatId, user?._id, newMessage);
-        if (message) {
-          console.log('Message sent:', message?.content);
-          setMessages((prevMessages) => [...prevMessages, message]);
-          setNewMessage("");
-        }
-      } catch (error) {
-        setError('Failed to send message.');
-        console.error('Send Message Error:', error.message);
+        // Optionally, update local state immediately for responsiveness
+        // setMessages(prevMessages => [...prevMessages, {
+        //   sender: messageData.sender,
+        //   content: messageData.content,
+        //   createdAt: new Date()
+        // }]);
+        setNewMessage(''); // Clear input field after sending
       }
+    } catch (error) {
+      console.error('Failed to send message:', error.message);
     }
-  }, [newMessage, chatId, user?._id]);
+  };
 
   return (
-    <div onMouseEnter={() => setRefreshChat(!refreshChat)} className="chat-box">
-      {false ? <div>Loading...</div> : <div onClick={() => setRefreshChat(prev => !prev)} style={{
-        cursor: "pointer",
-      }} >Messages</div>}
-      {error && <div style={{ color: 'red' }}>{error}</div>}
+    <div className="chat-box">
       <div className="messages">
-        {messages?.map((message) => (
-          <div
-            style={{
-              width: "100%",
-              display: "flex",
-              justifyContent:
-                message.sender === user._id ? "flex-end" : "flex-start",
-            }}
-            key={message._id}
-            className="message"
-          >
-            {message.content}
+        {messages.map((message, index) => (
+          <div key={index}>
+            <p>{message.content}</p>
           </div>
         ))}
-        {/* Scroll-to-bottom reference */}
-        <div ref={messagesEndRef} />
       </div>
       <form onSubmit={handleSendMessage}>
         <input
